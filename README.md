@@ -3,7 +3,7 @@
 > **One-line pitch:** Helps friend groups in New York without a car turn "where should we go this weekend?" into a doable plan that gets everyone home before the last train.
 
 - **Builder:** Emily Chen (`@EmilyCodingVer`)
-- **Pod:** [Pod Name / Number]
+- **Pod:** Pod 5
 - **Product Page & Living PRD:** https://building-with-ai-f26.github.io/lc5909-starter/
 - **App:** runs locally through Week 4; add a cloud URL in Build 5.
 
