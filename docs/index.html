@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>[Your Product Name] · Building with AI (Fall 2026)</title>
+  <title>TrailTrain · Building with AI (Fall 2026)</title>
 
   <!-- Week 1: create your PostHog account only.
        Build 2: paste your project's current PostHog web snippet here,
@@ -137,6 +137,22 @@
       font-size: 13px;
       color: var(--muted);
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 0 0 12px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--bg); font-weight: 600; }
+    .table-wrap { overflow-x: auto; }
+    .todo { color: #b45309; font-weight: 600; }
+    ol { margin: 0 0 12px; padding-left: 22px; color: #1f2937; }
   </style>
 </head>
 <body>
@@ -144,8 +160,8 @@
     <!-- HERO / PRODUCT PITCH -->
     <header>
       <span class="eyebrow">NYU Stern · Building with AI · Fall 2026</span>
-      <h1>[Your Product Name]</h1>
-      <p class="tagline">[One clear sentence: Who is this for, and what painful job does it do for them?]</p>
+      <h1>TrailTrain</h1>
+      <p class="tagline">Helps friend groups in New York without a car turn “where should we go this weekend?” into a doable plan that gets everyone home before the last train.</p>
       <div class="cta-row">
         <a class="btn" href="#live-demo" onclick="window.posthog && posthog.capture('clicked_try_product')">See the Product →</a>
         <a class="btn btn-secondary" href="#prd">Read the Living PRD</a>
@@ -157,12 +173,20 @@
     <section id="live-demo">
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
-        <strong>Current Status:</strong> [Build 1: local prototype / Builds 2–4: local app / Build 5: cloud app]<br />
-        <strong>Demo:</strong> [Add a screenshot or GIF now; add the live cloud app URL in Build 5.]
+        <strong>Current Status:</strong> Build 1 · local prototype<br />
+        <strong>Demo:</strong> <span class="todo">[TODO: prototype screenshot or GIF. Suggested: record step 4, “Simulate delay → automatic re-plan”]</span>
       </p>
-      <p class="meta">
-        Ask your coding agent to embed a screenshot or GIF of your local prototype for Build 1. Keep this evidence current, then add your cloud app link and two-minute video in Build 5.
-      </p>
+      <!-- Uncomment once the GIF is in place:
+      <img src="assets/demo.gif" alt="After clicking Simulate delay, the plan updates automatically and everyone is notified" style="width:100%;border:1px solid var(--border);border-radius:8px;" />
+      -->
+      <p><strong>The prototype only needs to prove one thing:</strong> a real group trip can go from creation to a plan, and re-plan automatically when there is a delay. The four screens to capture:</p>
+      <ol>
+        <li>Create a trip: pick a destination and date, get an invite link</li>
+        <li>In a second browser window: a friend opens the link and enters their starting station, fitness level, and budget</li>
+        <li>Plan page: trains, meeting point, the last-train countdown, and a backup option</li>
+        <li>Click “Simulate delay”: the plan updates on its own and shows a notification to everyone</li>
+      </ol>
+      <p class="meta">The app runs locally through Week 4. The cloud URL and 2-minute video come in Build 5.</p>
     </section>
 
     <!-- LIVING PRD (Updated every week!) -->
@@ -170,22 +194,68 @@
       <h2>Living PRD (Product Requirements Document)</h2>
       <p class="meta">Updated every week as we test with real users and learn what works.</p>
 
+      <p class="meta">PRD v1 · Nov 10, 2026 · Emily Chen</p>
+
+      <h3>0. The Problem</h3>
+      <p>Outdoor apps assume you drive. People without a car have to piece together transit schedules, weather, sunset, and the trip home on their own. Coordinating a group is even harder, so they often just don’t go.</p>
+      <p><strong>Why an agent, not a regular app:</strong> it keeps watching for delays and weather, and re-plans automatically when something changes, instead of handing out a route once.</p>
+
       <h3>1. Target User & The Job to Be Done</h3>
-      <p><strong>Who is this for?</strong> [Name a specific, reachable person or role you have direct access to.]</p>
-      <p><strong>The painful "Before" workflow:</strong> [How do they do this today, and why is it slow, manual, or broken?]</p>
-      <p><strong>The "After" workflow with this product:</strong> [What does your tool do for them in one sitting?]</p>
+      <p><strong>Who is this for?</strong> The first users are <strong>organizers</strong>: people who live in New York, don’t have a car, want to get outdoors once or twice a month, and usually bring 2–4 friends. I can reach them through my friends, classmate group chats, and the hiking and ski communities I know. Organizers pay; invited friends join through the link with no sign-up and don’t pay.</p>
+      <p><strong>Reachability test:</strong> book 20-minute calls with 5 organizers within 48 hours and ask each one: “The last time you organized a group trip, which step was the biggest hassle?” If I can’t, narrow the user group further. <span class="todo">[TODO: interview progress _/5]</span></p>
+      <p><strong>Before → After:</strong> Today the organizer switches back and forth between several tools. With the product, the organizer sends one link and the agent does the rest.</p>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Step</th><th>Before (today)</th><th>After (with the product)</th></tr>
+        <tr><td>Pick a destination</td><td>Outdoor apps assume driving; you have to check yourself whether transit gets you there</td><td>Only recommends trails reachable by public transit</td></tr>
+        <tr><td>Coordinate departure</td><td>Asking over and over in the group chat who is leaving from where and when they’ll arrive</td><td>Each friend enters their starting station once through the link; the agent works out trains and a meeting point that work for everyone</td></tr>
+        <tr><td>Getting home</td><td>Working back from the last train by hand, which is easy to get wrong</td><td>Works back from the last train automatically and gives the latest time to leave the trail</td></tr>
+        <tr><td>Changes before leaving</td><td>Delay or weather change means scrambling in the group chat</td><td>The agent monitors, re-plans, and notifies everyone</td></tr>
+        <tr><td>Cost</td><td><span class="todo">[TODO (from interviews): how long one plan takes today, and how many trips got dropped because it was too much hassle]</span></td><td>Goal: the organizer sends a doable plan within 5 minutes</td></tr>
+      </table>
+      </div>
 
       <h3>2. Scope & Explicit Non-Goals</h3>
       <ul>
-        <li><strong>In Scope (Core Workflow):</strong> [The 1 main workflow this product does reliably]</li>
-        <li><strong>Out of Scope #1:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-        <li><strong>Out of Scope #2:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-        <li><strong>Out of Scope #3:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
+        <li><strong>v1 scope:</strong> NYC metro area only, groups of friends only, hiking and ski day trips reachable by public transit.</li>
+        <li><strong>In Scope (Core Workflow):</strong> from creating a trip to a plan, then automatic re-planning when something changes.
+          <ol>
+            <li>Organizer creates the trip and gets an invite link</li>
+            <li>Friends enter their info: starting station, fitness level, budget</li>
+            <li><em>Agent</em> merges everyone’s constraints</li>
+            <li><em>Agent</em> produces the plan and a backup, working back from the last train</li>
+            <li><em>Agent</em> monitors delays and weather (in the prototype, a “Simulate delay” button stands in for real data)</li>
+            <li>Decision: something changed → back to step 3, re-plan and notify everyone; nothing changed → continue</li>
+            <li>Check-in on the way home with a safety buddy → post-trip feedback and trail conditions (only if time allows; not part of the main line)</li>
+          </ol>
+          The organizer and each friend enter information only once; the agent handles the rest.
+        </li>
+        <li><strong>Out of Scope #1: No matching with strangers, no feed, no chat rooms.</strong> Cold start is hard, and strangers hiking together raises safety liability. v1 only serves existing friend groups.</li>
+        <li><strong>Out of Scope #2: No driving routes, and nothing outside the NYC metro area.</strong> A narrow scope is what keeps the schedule data accurate. The trail list is hand-curated, 15–20 trails.</li>
+        <li><strong>Out of Scope #3: No real-time GPS navigation or ticket booking.</strong> Navigation stays with existing apps; v1 only provides the plan, reminders, and the check-in on the way home.</li>
       </ul>
 
+      <h3>Success Criteria (after 4 weeks)</h3>
+      <p>At least 3 real friend groups complete a full trip through the product, and every train in their plans can be traced back to a published schedule.</p>
+      <ul>
+        <li>☐ 3 friend groups complete “create trip → enter info → get plan”</li>
+        <li>☐ Every time in a plan has a data source; no times made up by the model</li>
+        <li>☐ At least 2 organizers say “I’d use this again” and answer whether they would pay, and how much</li>
+      </ul>
+
+      <h3>Risks</h3>
+      <div class="table-wrap">
+      <table>
+        <tr><th>Risk</th><th>Impact</th><th>Mitigation</th></tr>
+        <tr><td>Schedule data is wrong, or there is a special weekend schedule</td><td>The group misses the train</td><td>Label every plan with the data date and source, and re-check once before departure</td></tr>
+        <tr><td>Friends won’t open the link and fill in their info</td><td>Few trips actually get organized</td><td>No sign-up, done in under a minute</td></tr>
+        <tr><td>Scope is too big to finish in four weeks</td><td>No prototype to show</td><td>Get one route working end to end first, then expand to 15–20</td></tr>
+      </table>
+      </div>
+
       <h3>3. How It Works Under the Hood & Riskiest Assumption (Week 2+)</h3>
-      <p><strong>Riskiest Assumption:</strong> [What is the #1 technical or user risk that could sink this product?]</p>
-      <p><strong>Simple Architecture:</strong> [User Input] → [Your App / Server] → [AI Model / Tool] → [Output]</p>
+      <p><strong>Riskiest Assumption:</strong> that the schedule data is accurate, including special weekend schedules. If it is wrong, the group misses the train and stops trusting the plan.</p>
+      <p><strong>Simple Architecture:</strong> organizer creates trip + friends fill in the form → local app merges constraints → schedule / weather data + AI model → plan, last-train countdown, backup; on a delay, re-plan and notify <span class="todo">[TODO Week 2: tech stack]</span></p>
 
       <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
       <div class="grid-2">
@@ -216,10 +286,10 @@
       <div class="log-entry">
         <h3>Build 1 · Intent.md & Throwaway Prototype (Due Nov 9)</h3>
         <ul>
-          <li><strong>What shipped:</strong> [What you actually built; link your local prototype screenshot or GIF above.]</li>
-          <li><strong>Things learned with AI:</strong> [What you learned from AI practice and Terminus Episodes 1 and 2.]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
+          <li><strong>What shipped:</strong> PRD v1 written and the Product Page published. <span class="todo">[TODO: which prototype steps actually work, matching the screenshot/GIF above]</span></li>
+          <li><strong>Things learned with AI:</strong> <span class="todo">[TODO: what you learned from AI practice and Terminus Episodes 1 and 2]</span></li>
+          <li><strong>What broke / changed in PRD:</strong> Narrowed scope to the NYC metro area, friend groups, and transit-reachable hiking and ski day trips; monitoring is stood in for by a “Simulate delay” button for now. <span class="todo">[TODO: what broke or changed while building the prototype]</span></li>
+          <li><strong>Cost & time this week:</strong> <span class="todo">$[TODO]</span> · <span class="todo">[TODO] hours</span> (track model API calls, hosting, and tool subscriptions; log actual working hours)</li>
         </ul>
       </div>
 

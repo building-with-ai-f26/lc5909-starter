@@ -1,10 +1,10 @@
-# [Project Name]
+# TrailTrain
 
-> **One-line pitch:** [Who is this for, and what job does it do for them?]
+> **One-line pitch:** Helps friend groups in New York without a car turn "where should we go this weekend?" into a doable plan that gets everyone home before the last train.
 
-- **Builder:** [Your Name] (`@github-handle`)
+- **Builder:** Emily Chen (`@EmilyCodingVer`)
 - **Pod:** [Pod Name / Number]
-- **Product Page & Living PRD:** [Add your GitHub Pages URL]
+- **Product Page & Living PRD:** https://building-with-ai-f26.github.io/lc5909-starter/
 - **App:** runs locally through Week 4; add a cloud URL in Build 5.
 
 ## Start here: Build 1
