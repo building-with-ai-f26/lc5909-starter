@@ -3,15 +3,15 @@
 > Give this file to your coding agent and check that it is using these instructions. Keep the stack, commands, and ground rules current.
 
 ## 1. Project Overview
-- **What this repo builds:** [1–2 sentence summary]
+- **What this repo builds:** TrailTrain, a planner that helps car-free NYC friend groups plan transit-reachable hiking day trips around the last train home, and re-plans when a train is delayed.
 - **Primary user & core workflow:** [See the living PRD in `docs/index.html`]
-- **Tech stack:** [e.g., Python 3.12 / FastAPI / Next.js / SQLite / OpenRouter API]
+- **Tech stack:** Python 3 standard library only (`http.server`), one vanilla HTML/JS page, in-memory trips. No AI model yet: plans come from rules over `app/data/route.json` (sample timetable, not verified).
 
 ## 2. Commands
-- **Install dependencies:** `[e.g., npm install / uv sync]`
-- **Run locally:** `[e.g., npm run dev]`
-- **Run deterministic tests:** `[e.g., pytest / npm test]`
-- **Run model evals:** `[e.g., python tests/eval.py]`
+- **Install dependencies:** none (needs Python 3.9+)
+- **Run locally:** `python3 app/server.py`, then open http://localhost:8000
+- **Run deterministic tests:** `python3 -m unittest discover tests`
+- **Run model evals:** not yet (no model in the prototype)
 
 ## 3. Non-Negotiable Engineering Rules
 1. **Plan before coding:** Before touching multiple files, propose a brief plan and wait for approval.

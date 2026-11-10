@@ -174,11 +174,18 @@
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
         <strong>Current Status:</strong> Build 1 · local prototype<br />
-        <strong>Demo:</strong> <span class="todo">[TODO: prototype screenshot or GIF. Suggested: record step 4, “Simulate delay → automatic re-plan”]</span>
+        <strong>Demo:</strong> screenshots of the local prototype below (sample timetable data, not yet verified against MTA).
       </p>
-      <!-- Uncomment once the GIF is in place:
-      <img src="assets/demo.gif" alt="After clicking Simulate delay, the plan updates automatically and everyone is notified" style="width:100%;border:1px solid var(--border);border-radius:8px;" />
-      -->
+      <div class="grid-2" style="margin-bottom:12px;">
+        <figure style="margin:0;">
+          <img src="assets/trip-and-notifications.png" alt="TrailTrain trip page: invite link, a simulated 70-minute delay alert, the re-plan notification, and the join form" style="width:100%;border:1px solid var(--border);border-radius:8px;" />
+          <figcaption class="meta">Trip page: invite link, join form, and the notifications sent to everyone after a simulated 70-min delay.</figcaption>
+        </figure>
+        <figure style="margin:0;">
+          <img src="assets/plan-after-delay.png" alt="TrailTrain plan after the delay: main plan switched to H-0943, latest off trail 16:25, delayed H-0843 kept as backup" style="width:100%;border:1px solid var(--border);border-radius:8px;" />
+          <figcaption class="meta">Plan after the delay: the main plan moved to the next train, the delayed train became the backup, and every time shows its source.</figcaption>
+        </figure>
+      </div>
       <p><strong>The prototype only needs to prove one thing:</strong> a real group trip can go from creation to a plan, and re-plan automatically when there is a delay. The four screens to capture:</p>
       <ol>
         <li>Create a trip: pick a destination and date, get an invite link</li>
@@ -286,7 +293,7 @@
       <div class="log-entry">
         <h3>Build 1 · Intent.md & Throwaway Prototype (Due Nov 9)</h3>
         <ul>
-          <li><strong>What shipped:</strong> PRD v1 written and the Product Page published. <span class="todo">[TODO: which prototype steps actually work, matching the screenshot/GIF above]</span></li>
+          <li><strong>What shipped:</strong> PRD v1 written and the Product Page published. Local prototype (Python standard library + one HTML page) runs the main line for one route, Grand Central → Cold Spring: create a trip → friends join via link → plan with the last-train countdown and a backup → “Simulate delay” re-plans and notifies everyone (screenshots above). Timetable is sample data, not yet verified against MTA.</li>
           <li><strong>Things learned with AI:</strong> <span class="todo">[TODO: what you learned from AI practice and Terminus Episodes 1 and 2]</span></li>
           <li><strong>What broke / changed in PRD:</strong> Narrowed scope to the NYC metro area, friend groups, and transit-reachable hiking and ski day trips; monitoring is stood in for by a “Simulate delay” button for now. <span class="todo">[TODO: what broke or changed while building the prototype]</span></li>
           <li><strong>Cost & time this week:</strong> <span class="todo">$[TODO]</span> · <span class="todo">[TODO] hours</span> (track model API calls, hosting, and tool subscriptions; log actual working hours)</li>

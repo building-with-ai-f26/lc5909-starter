@@ -42,4 +42,15 @@ git clone https://github.com/building-with-ai-f26/<your-repo-name>.git
 cd <your-repo-name>
 ```
 
+### Run the TrailTrain prototype
+
+No dependencies; needs Python 3.9+.
+
+```bash
+python3 app/server.py                 # then open http://localhost:8000
+python3 -m unittest discover tests    # planner tests
+```
+
+Demo flow: create a trip → open the invite link in a second browser window and join → see the plan → click **Simulate 70-min delay** and watch both windows update. Trips are kept in memory and disappear when the server stops. The timetable in `app/data/route.json` is **sample data** and must be checked against the official MTA Metro-North timetable before a real trip.
+
 If your app needs API keys, use a local environment file such as `.env`. Keep private keys out of source code, browser code, screenshots, and commits. The template ignores `.env`; `.env.example` contains placeholders only.

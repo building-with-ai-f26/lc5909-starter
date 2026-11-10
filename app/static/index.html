@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TrailTrain · prototype</title>
+  <style>
+    :root { --bg:#f6f7f4; --card:#fff; --text:#1c2321; --muted:#5b6560; --border:#dfe3df; --accent:#2f6b4f; --warn:#b45309; --alert-bg:#fff7e6; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
+    .wrap { max-width:760px; margin:0 auto; padding:32px 16px 64px; }
+    h1 { margin:0 0 4px; font-size:28px; }
+    h2 { font-size:18px; margin:0 0 12px; }
+    .sub { color:var(--muted); margin:0 0 20px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px; }
+    label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+    input, select { width:100%; padding:9px 10px; border:1px solid var(--border); border-radius:8px; font-size:15px; }
+    button { margin-top:14px; padding:10px 16px; border:0; border-radius:8px; background:var(--accent); color:#fff; font-size:15px; font-weight:600; cursor:pointer; }
+    button.alt { background:var(--warn); }
+    .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:0 12px; }
+    .banner { background:var(--alert-bg); border:1px solid #f3d9a4; color:#7c4a03; padding:8px 12px; border-radius:8px; font-size:13px; margin-bottom:16px; }
+    .link { word-break:break-all; background:var(--bg); padding:8px 10px; border-radius:8px; font-family:ui-monospace,monospace; font-size:13px; }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    td, th { text-align:left; padding:6px 8px; border-bottom:1px solid var(--border); }
+    .big { font-size:22px; font-weight:700; }
+    .muted { color:var(--muted); font-size:13px; }
+    .warn { color:var(--warn); }
+    .notif { background:var(--alert-bg); border-left:4px solid var(--warn); padding:8px 12px; margin:6px 0; border-radius:4px; font-size:14px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>TrailTrain</h1>
+  <p class="sub">Car-free day trips from NYC, planned around the last train home.</p>
+  <div class="banner" id="data-status"></div>
+
+  <!-- Screen 1: create trip -->
+  <div class="card hidden" id="create">
+    <h2>1 · Create a trip</h2>
+    <p class="muted" id="route-name"></p>
+    <label>Trip name</label><input id="c-title" value="Cold Spring hike" />
+    <div class="row">
+      <div><label>Date</label><input id="c-date" type="date" /></div>
+      <div><label>Earliest departure</label><input id="c-earliest" type="time" value="08:30" /></div>
+    </div>
+    <button id="c-go">Create trip and get link</button>
+  </div>
+
+  <div id="trip" class="hidden">
+    <div class="card">
+      <h2 id="t-title"></h2>
+      <p class="muted" id="t-meta"></p>
+      <label>Invite link (open it in another browser window)</label>
+      <div class="link" id="t-link"></div>
+    </div>
+
+    <div class="card" id="notifs-card" style="display:none">
+      <h2>Notifications</h2>
+      <div id="notifs"></div>
+    </div>
+
+    <!-- Screen 2: friend joins -->
+    <div class="card">
+      <h2>2 · Join: enter your info once</h2>
+      <div class="row">
+        <div><label>Your name</label><input id="j-name" /></div>
+        <div><label>Starting station</label><select id="j-station"></select></div>
+        <div><label>Fitness</label><select id="j-fitness"></select></div>
+        <div><label>Budget for transit ($)</label><input id="j-budget" type="number" min="0" value="40" /></div>
+      </div>
+      <button id="j-go">Save my info</button>
+      <p class="muted" id="j-msg"></p>
+      <table id="friends"></table>
+    </div>
+
+    <!-- Screen 3 + 4: plan and simulate delay -->
+    <div class="card">
+      <h2>3 · Plan</h2>
+      <div id="plan"><p class="muted">The plan appears once someone joins.</p></div>
+      <button class="alt hidden" id="delay">Simulate 70-min delay on our train</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const tripId = new URLSearchParams(location.search).get("trip");
+let lastSeen = 0;
+
+async function api(path, body) {
+  const res = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Request failed");
+  return data;
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function init() {
+  const route = await api("/api/route");
+  $("data-status").textContent = route.data_status;
+  $("route-name").textContent = "Route: " + route.name;
+  $("j-station").innerHTML = route.stations.map((s) => `<option>${esc(s)}</option>`).join("");
+  $("j-fitness").innerHTML = route.fitness.map((f) => `<option>${esc(f)}</option>`).join("");
+  try { $("j-name").value = localStorage.getItem("tt-name") || ""; } catch (e) {}
+
+  if (!tripId) { $("create").classList.remove("hidden"); return; }
+  $("trip").classList.remove("hidden");
+  $("t-link").textContent = location.href;
+  await refresh();
+  setInterval(refresh, 2000);
+}
+
+$("c-go").onclick = async () => {
+  const { id } = await api("/api/trips", { title: $("c-title").value, date: $("c-date").value, earliest_departure: $("c-earliest").value });
+  location.search = "?trip=" + id;
+};
+
+$("j-go").onclick = async () => {
+  try {
+    await api(`/api/trips/${tripId}/join`, { name: $("j-name").value, station: $("j-station").value, fitness: $("j-fitness").value, budget: $("j-budget").value });
+    try { localStorage.setItem("tt-name", $("j-name").value); } catch (e) {}
+    $("j-msg").textContent = "Saved.";
+    refresh();
+  } catch (e) { $("j-msg").textContent = e.message; }
+};
+
+$("delay").onclick = async () => {
+  try { await api(`/api/trips/${tripId}/delay`, { minutes: 70 }); refresh(); } catch (e) { alert(e.message); }
+};
+
+async function refresh() {
+  let t;
+  try { t = await api(`/api/trips/${tripId}`); } catch (e) { $("plan").innerHTML = `<p class="warn">${esc(e.message)}</p>`; return; }
+  $("t-title").textContent = t.title;
+  $("t-meta").textContent = `${t.date || "Date not set"} · ${t.route} · earliest departure ${t.earliest_departure}`;
+
+  $("friends").innerHTML = t.friends.length
+    ? "<tr><th>Who</th><th>Station</th><th>Fitness</th><th>Budget</th></tr>" +
+      t.friends.map((f) => `<tr><td>${esc(f.name)}</td><td>${esc(f.station)}</td><td>${esc(f.fitness)}</td><td>$${f.budget}</td></tr>`).join("")
+    : "";
+
+  if (t.notifications.length) {
+    $("notifs-card").style.display = "";
+    $("notifs").innerHTML = t.notifications.slice().reverse().map((n) => `<div class="notif">${esc(n)}</div>`).join("");
+    if (t.notifications.length > lastSeen && lastSeen > 0) document.title = "🔔 TrailTrain: plan changed";
+  }
+  lastSeen = t.notifications.length;
+
+  renderPlan(t.plan);
+}
+
+function option(o, label) {
+  return `
+    <p><strong>${label}: ${esc(o.train)}</strong>${o.delay_min ? ` <span class="warn">(+${o.delay_min} min delay)</span>` : ""}</p>
+    <table>
+      ${o.boarding.map((b) => `<tr><td>${esc(b.name)}</td><td>boards at ${esc(b.station)}</td><td>${b.time}</td></tr>`).join("")}
+      <tr><td>Meet</td><td colspan="2">${esc(o.meeting_point)}</td></tr>
+      <tr><td>Arrive</td><td>Cold Spring</td><td>${o.arrive}</td></tr>
+      <tr><td>On trail</td><td colspan="2">${o.trail_start} – ${o.trail_end}</td></tr>
+      <tr><td>Home</td><td>${esc(o.return_train || "none")}</td><td>leaves ${o.return_departs || "–"}</td></tr>
+      ${o.home.map((h) => `<tr><td></td><td>${esc(h.name)} back at ${esc(h.station)}</td><td>${h.time}</td></tr>`).join("")}
+    </table>
+    <p class="muted">Source: ${esc(o.source)}</p>`;
+}
+
+function renderPlan(p) {
+  if (!p) return;
+  if (!p.ok) { $("plan").innerHTML = `<p class="warn">${esc(p.reason)}</p>`; $("delay").classList.add("hidden"); return; }
+  $("plan").innerHTML = `
+    <div class="row">
+      <div><div class="muted">Latest off trail</div><div class="big">${p.latest_off_trail}</div><div class="muted">set by ${esc(p.latest_off_trail_reason)} (sunset ${p.sunset}, last train ${p.last_train_id} at ${p.last_train_home})</div></div>
+      <div><div class="muted">Hike length</div><div class="big">${Math.floor(p.hike_minutes / 60)}h ${p.hike_minutes % 60}m</div><div class="muted">set by ${esc(p.hike_set_by)}</div></div>
+    </div>
+    ${p.warnings.map((w) => `<p class="warn">⚠ ${esc(w)}</p>`).join("")}
+    <hr style="border:0;border-top:1px solid var(--border);margin:16px 0" />
+    ${option(p.main, "Main plan")}
+    ${p.backup ? option(p.backup, "Backup") : '<p class="muted">No backup train fits before sunset.</p>'}`;
+  $("delay").classList.remove("hidden");
+}
+
+init();
+</script>
+</body>
+</html>

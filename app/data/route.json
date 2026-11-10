@@ -1,0 +1,34 @@
+{
+  "id": "cold-spring",
+  "name": "Cold Spring · Washburn–Bull Hill loop",
+  "line": "Metro-North Hudson Line",
+  "destination": "Cold Spring",
+  "data_status": "SAMPLE DATA, NOT VERIFIED. Replace with the official MTA Metro-North weekend timetable before any real trip.",
+  "data_source": "Hand-entered sample timetable (route.json)",
+  "data_date": "2026-11-10",
+  "stations": ["Grand Central", "Harlem-125 St", "Yonkers", "Croton-Harmon"],
+  "fares_one_way": {
+    "Grand Central": 17.0,
+    "Harlem-125 St": 17.0,
+    "Yonkers": 11.0,
+    "Croton-Harmon": 8.0
+  },
+  "walk_station_to_trailhead_min": 15,
+  "hike_minutes": { "easy": 300, "moderate": 240, "strong": 195 },
+  "sunset": "16:40",
+  "safety_buffer_min": 15,
+  "outbound": [
+    { "id": "H-0743", "stops": { "Grand Central": "07:43", "Harlem-125 St": "07:54", "Yonkers": "08:12", "Croton-Harmon": "08:38", "Cold Spring": "09:00" } },
+    { "id": "H-0843", "stops": { "Grand Central": "08:43", "Harlem-125 St": "08:54", "Yonkers": "09:12", "Croton-Harmon": "09:38", "Cold Spring": "10:00" } },
+    { "id": "H-0943", "stops": { "Grand Central": "09:43", "Harlem-125 St": "09:54", "Yonkers": "10:12", "Croton-Harmon": "10:38", "Cold Spring": "11:00" } },
+    { "id": "H-1043", "stops": { "Grand Central": "10:43", "Harlem-125 St": "10:54", "Yonkers": "11:12", "Croton-Harmon": "11:38", "Cold Spring": "12:00" } }
+  ],
+  "return": [
+    { "id": "R-1358", "stops": { "Cold Spring": "13:58", "Croton-Harmon": "14:20", "Yonkers": "14:46", "Harlem-125 St": "15:04", "Grand Central": "15:15" } },
+    { "id": "R-1458", "stops": { "Cold Spring": "14:58", "Croton-Harmon": "15:20", "Yonkers": "15:46", "Harlem-125 St": "16:04", "Grand Central": "16:15" } },
+    { "id": "R-1558", "stops": { "Cold Spring": "15:58", "Croton-Harmon": "16:20", "Yonkers": "16:46", "Harlem-125 St": "17:04", "Grand Central": "17:15" } },
+    { "id": "R-1658", "stops": { "Cold Spring": "16:58", "Croton-Harmon": "17:20", "Yonkers": "17:46", "Harlem-125 St": "18:04", "Grand Central": "18:15" } },
+    { "id": "R-1758", "stops": { "Cold Spring": "17:58", "Croton-Harmon": "18:20", "Yonkers": "18:46", "Harlem-125 St": "19:04", "Grand Central": "19:15" } },
+    { "id": "R-1858", "stops": { "Cold Spring": "18:58", "Croton-Harmon": "19:20", "Yonkers": "19:46", "Harlem-125 St": "20:04", "Grand Central": "20:15" } }
+  ]
+}
