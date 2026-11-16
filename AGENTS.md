@@ -12,7 +12,24 @@
 - **Set up secrets:** `cp .env.example .env`, then put your OpenRouter key in `.env` (never commit it). Without a key the app still works; only "Fill from description" shows an error.
 - **Run locally:** `python3 app/server.py`, then open http://localhost:8000
 - **Run deterministic tests:** `python3 -m unittest discover tests`
-- **Run model evals:** not yet (no model in the prototype)
+- **Run model evals:** not yet. The one model call (trip description parsing) is covered by deterministic validation tests in `tests/test_llm.py`; a 10-case eval comes in Build 4.
+
+## Project Structure
+```
+app/
+  server.py            HTTP server + JSON API (/api/route, /api/parse, /api/trips/...); trips live in memory
+  llm.py               One OpenRouter call: trip description -> form fields; validates the model's JSON
+  planner.py           Rules-only planner: trains, backup, last train home, delay re-plan, home-by warning
+  data/route.json      Sample Cold Spring timetable (NOT verified against MTA)
+  static/index.html    The whole local UI (vanilla HTML/JS) + PostHog snippet and custom events
+docs/
+  index.html           Product Page on GitHub Pages: pitch, living PRD, build log, PostHog snippet
+  assets/              Screenshots used on the Product Page
+tests/                 unittest suites for planner.py and llm.py (no network)
+journal/               Build journals (one file per build)
+.env.example           Variables to copy into a local, git-ignored .env
+```
+- **Analytics:** PostHog web snippet in both `app/static/index.html` and `docs/index.html`. The `phc_` project key is public by design; never commit a personal API key.
 
 ## 3. Non-Negotiable Engineering Rules
 1. **Plan before coding:** Before touching multiple files, propose a brief plan and wait for approval.

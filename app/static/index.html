@@ -11,6 +11,7 @@
         api_host: 'https://us.i.posthog.com',
         defaults: '2026-05-30',
         person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+        session_recording: { maskAllInputs: true }, // replays never show what testers type
     })
   </script>
   <style>
@@ -43,6 +44,7 @@
   <h1>TrailTrain</h1>
   <p class="sub">Car-free day trips from NYC, planned around the last train home.</p>
   <div class="banner" id="data-status"></div>
+  <p class="muted" style="margin:-8px 0 16px;">Heads-up: this app uses PostHog analytics and session replay, so your clicks and scrolling in this app are recorded to help improve TrailTrain. Text you type into form fields is masked.</p>
 
   <!-- Screen 1: create trip -->
   <div class="card hidden" id="create">
