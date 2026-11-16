@@ -5,10 +5,11 @@
 ## 1. Project Overview
 - **What this repo builds:** TrailTrain, a planner that helps car-free NYC friend groups plan transit-reachable hiking day trips around the last train home, and re-plans when a train is delayed.
 - **Primary user & core workflow:** [See the living PRD in `docs/index.html`]
-- **Tech stack:** Python 3 standard library only (`http.server`), one vanilla HTML/JS page, in-memory trips. No AI model yet: plans come from rules over `app/data/route.json` (sample timetable, not verified).
+- **Tech stack:** Python 3 standard library only (`http.server`), one vanilla HTML/JS page, in-memory trips. One LLM call (OpenRouter, `app/llm.py`) turns a plain-language trip description into form fields; every train time still comes from rules in `app/planner.py` over `app/data/route.json` (sample timetable, not verified).
 
 ## 2. Commands
 - **Install dependencies:** none (needs Python 3.9+)
+- **Set up secrets:** `cp .env.example .env`, then put your OpenRouter key in `.env` (never commit it). Without a key the app still works; only "Fill from description" shows an error.
 - **Run locally:** `python3 app/server.py`, then open http://localhost:8000
 - **Run deterministic tests:** `python3 -m unittest discover tests`
 - **Run model evals:** not yet (no model in the prototype)

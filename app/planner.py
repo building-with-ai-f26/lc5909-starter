@@ -25,11 +25,12 @@ def _source(route, train_id=None, delay=0):
     return src
 
 
-def make_plan(route, friends, earliest_departure="08:30", delays=None):
+def make_plan(route, friends, earliest_departure="08:30", delays=None, home_by=None):
     """Build a plan for the group.
 
     friends: list of {"name", "station", "fitness", "budget"}
     delays: {outbound_train_id: minutes}, applied to every stop of that train
+    home_by: optional "HH:MM"; only adds a warning, never changes the trains
     Returns a dict; "ok" is False when no plan fits.
     """
     delays = delays or {}
@@ -123,6 +124,13 @@ def make_plan(route, friends, earliest_departure="08:30", delays=None):
 
     main = build_option(candidates[0])
     backup = build_option(candidates[1]) if len(candidates) > 1 else None
+
+    if home_by:
+        for h in main["home"]:
+            if to_min(h["time"]) > to_min(home_by):
+                warnings.append(
+                    f"{h['name']} gets back to {h['station']} at {h['time']}, after the home-by time {home_by}."
+                )
 
     return {
         "ok": True,

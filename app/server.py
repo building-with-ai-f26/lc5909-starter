@@ -11,12 +11,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+import llm
 import planner
 
 HERE = Path(__file__).parent
 ROUTE = json.loads((HERE / "data" / "route.json").read_text())
 INDEX = (HERE / "static" / "index.html").read_bytes()
 PORT = 8000
+llm.load_env()
 
 TRIPS = {}
 LOCK = threading.Lock()
@@ -24,7 +26,7 @@ LOCK = threading.Lock()
 
 def replan(trip):
     """Recompute the plan; if the main plan changed, notify everyone."""
-    new = planner.make_plan(ROUTE, trip["friends"], trip["earliest_departure"], trip["delays"])
+    new = planner.make_plan(ROUTE, trip["friends"], trip["earliest_departure"], trip["delays"], trip["home_by"])
     msg = planner.describe_change(trip["plan"], new)
     if msg:
         trip["notifications"].append(msg)
@@ -74,13 +76,29 @@ class Handler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             return self._send(400, {"error": "Invalid JSON"})
 
+        if parts == ["api", "parse"]:
+            text = (body.get("text") or "").strip()[:500]
+            if not text:
+                return self._send(400, {"error": "Describe your trip first."})
+            try:
+                return self._send(200, llm.parse_trip_request(text, ROUTE))
+            except llm.LLMError as e:
+                status = 503 if "OPENROUTER_API_KEY" in str(e) else 502
+                return self._send(status, {"error": str(e)})
+
         if parts == ["api", "trips"]:
+            try:
+                group_size = int(body.get("group_size") or 0) or None
+            except (TypeError, ValueError):
+                group_size = None
             trip_id = secrets.token_urlsafe(5)
             trip = {
                 "id": trip_id,
                 "title": (body.get("title") or "Weekend hike").strip()[:80],
                 "date": body.get("date") or "",
                 "earliest_departure": body.get("earliest_departure") or "08:30",
+                "group_size": group_size,
+                "home_by": body.get("home_by") if llm.TIME_RE.match(body.get("home_by") or "") else None,
                 "route": ROUTE["name"],
                 "friends": [], "delays": {}, "notifications": [], "plan": None,
             }
@@ -108,7 +126,9 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(400, {"error": "Please fill in name, station, fitness, and budget."})
                 trip["friends"] = [f for f in trip["friends"] if f["name"] != name]
                 trip["friends"].append({"name": name, "station": station, "fitness": fitness, "budget": budget})
-                trip["plan"] = planner.make_plan(ROUTE, trip["friends"], trip["earliest_departure"], trip["delays"])
+                trip["plan"] = planner.make_plan(
+                    ROUTE, trip["friends"], trip["earliest_departure"], trip["delays"], trip["home_by"]
+                )
                 return self._send(200, trip)
 
             if action == "delay":

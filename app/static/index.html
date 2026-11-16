@@ -14,7 +14,7 @@
     .sub { color:var(--muted); margin:0 0 20px; }
     .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px; }
     label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
-    input, select { width:100%; padding:9px 10px; border:1px solid var(--border); border-radius:8px; font-size:15px; }
+    input, select, textarea { width:100%; padding:9px 10px; border:1px solid var(--border); border-radius:8px; font-size:15px; }
     button { margin-top:14px; padding:10px 16px; border:0; border-radius:8px; background:var(--accent); color:#fff; font-size:15px; font-weight:600; cursor:pointer; }
     button.alt { background:var(--warn); }
     .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:0 12px; }
@@ -39,10 +39,16 @@
   <div class="card hidden" id="create">
     <h2>1 · Create a trip</h2>
     <p class="muted" id="route-name"></p>
+    <label>Describe your trip (optional, AI fills the form below)</label>
+    <textarea id="c-text" rows="3" style="font:inherit" placeholder="e.g. 4 of us this Saturday, can leave after 9am, need to be home by 7pm"></textarea>
+    <button id="c-parse" type="button">Fill from description</button>
+    <div id="c-parsed" class="muted"></div>
     <label>Trip name</label><input id="c-title" value="Cold Spring hike" />
     <div class="row">
       <div><label>Date</label><input id="c-date" type="date" /></div>
       <div><label>Earliest departure</label><input id="c-earliest" type="time" value="08:30" /></div>
+      <div><label>Group size</label><input id="c-size" type="number" min="1" max="30" /></div>
+      <div><label>Home by</label><input id="c-homeby" type="time" /></div>
     </div>
     <button id="c-go">Create trip and get link</button>
   </div>
@@ -111,8 +117,30 @@ async function init() {
   setInterval(refresh, 2000);
 }
 
+$("c-parse").onclick = async () => {
+  const btn = $("c-parse");
+  btn.disabled = true; btn.textContent = "Reading…";
+  try {
+    const { fields: f, notes } = await api("/api/parse", { text: $("c-text").value });
+    const ids = { title: "c-title", date: "c-date", earliest_departure: "c-earliest", group_size: "c-size", home_by: "c-homeby" };
+    for (const k in ids) if (f[k] != null) $(ids[k]).value = f[k];
+    const understood = [
+      f.date && `date ${f.date}`, f.earliest_departure && `leave after ${f.earliest_departure}`,
+      f.group_size && `${f.group_size} people`, f.home_by && `home by ${f.home_by}`,
+    ].filter(Boolean);
+    $("c-parsed").innerHTML =
+      `<p>Understood: ${esc(understood.join(" · ") || "nothing specific")}. Please check the form before creating.</p>` +
+      notes.map((n) => `<p class="warn">⚠ ${esc(n)}</p>`).join("");
+  } catch (e) {
+    $("c-parsed").innerHTML = `<p class="warn">${esc(e.message)} You can still fill in the form by hand.</p>`;
+  } finally { btn.disabled = false; btn.textContent = "Fill from description"; }
+};
+
 $("c-go").onclick = async () => {
-  const { id } = await api("/api/trips", { title: $("c-title").value, date: $("c-date").value, earliest_departure: $("c-earliest").value });
+  const { id } = await api("/api/trips", {
+    title: $("c-title").value, date: $("c-date").value, earliest_departure: $("c-earliest").value,
+    group_size: $("c-size").value, home_by: $("c-homeby").value,
+  });
   location.search = "?trip=" + id;
 };
 
@@ -133,7 +161,8 @@ async function refresh() {
   let t;
   try { t = await api(`/api/trips/${tripId}`); } catch (e) { $("plan").innerHTML = `<p class="warn">${esc(e.message)}</p>`; return; }
   $("t-title").textContent = t.title;
-  $("t-meta").textContent = `${t.date || "Date not set"} · ${t.route} · earliest departure ${t.earliest_departure}`;
+  $("t-meta").textContent = `${t.date || "Date not set"} · ${t.route} · earliest departure ${t.earliest_departure}` +
+    (t.group_size ? ` · ${t.friends.length}/${t.group_size} joined` : "") + (t.home_by ? ` · home by ${t.home_by}` : "");
 
   $("friends").innerHTML = t.friends.length
     ? "<tr><th>Who</th><th>Station</th><th>Fitness</th><th>Budget</th></tr>" +

@@ -67,6 +67,14 @@ class PlannerTest(unittest.TestCase):
         self.assertIn("data date", p["main"]["source"])
         self.assertIn("route.json", p["source"])
 
+    def test_home_by_only_warns_and_keeps_trains(self):
+        base = planner.make_plan(ROUTE, FRIENDS, "08:30")
+        p = planner.make_plan(ROUTE, FRIENDS, "08:30", home_by="17:10")
+        self.assertEqual(p["main"]["train"], base["main"]["train"])
+        late = [w for w in p["warnings"] if "home-by" in w]
+        self.assertEqual(len(late), 1)  # Emily 17:15 is late, Sam 17:04 is fine
+        self.assertIn("Emily", late[0])
+
 
 if __name__ == "__main__":
     unittest.main()
