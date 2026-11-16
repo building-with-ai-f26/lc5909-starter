@@ -180,9 +180,13 @@
     <section id="live-demo">
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
-        <strong>Current Status:</strong> Build 1 · local prototype<br />
+        <strong>Current Status:</strong> Build 2 · local app with one real AI call<br />
         <strong>Demo:</strong> screenshots of the local prototype below (sample timetable data, not yet verified against MTA).
       </p>
+      <figure style="margin:0 0 12px;">
+        <img src="assets/ai-fill.png" alt="TrailTrain create-trip screen: a plain-language trip description was parsed by the AI into date, earliest departure, group size, and home-by time, with an Understood summary for the organizer to check" style="width:100%;border:1px solid var(--border);border-radius:8px;" />
+        <figcaption class="meta">Build 2: the organizer describes the trip in one sentence; one AI call fills the form and shows what it understood. The organizer checks it before creating the trip.</figcaption>
+      </figure>
       <div class="grid-2" style="margin-bottom:12px;">
         <figure style="margin:0;">
           <img src="assets/trip-and-notifications.png" alt="TrailTrain trip page: invite link, a simulated 70-minute delay alert, the re-plan notification, and the join form" style="width:100%;border:1px solid var(--border);border-radius:8px;" />
@@ -208,7 +212,7 @@
       <h2>Living PRD (Product Requirements Document)</h2>
       <p class="meta">Updated every week as we test with real users and learn what works.</p>
 
-      <p class="meta">PRD v1 · Nov 10, 2026 · Emily Chen</p>
+      <p class="meta">PRD v2 · Nov 16, 2026 · Emily Chen (v1: Nov 10)</p>
 
       <h3>0. The Problem</h3>
       <p>Outdoor apps assume you drive. People without a car have to piece together transit schedules, weather, sunset, and the trip home on their own. Coordinating a group is even harder, so they often just don’t go.</p>
@@ -261,6 +265,7 @@
       <div class="table-wrap">
       <table>
         <tr><th>Risk</th><th>Impact</th><th>Mitigation</th></tr>
+        <tr><td>The AI misreads the trip description (wrong date, time, or group size)</td><td>The plan is built on the wrong inputs and the group trusts it</td><td>AI only fills the form; the organizer sees an “Understood” summary and confirms; invalid values are dropped; train times never come from the AI</td></tr>
         <tr><td>Schedule data is wrong, or there is a special weekend schedule</td><td>The group misses the train</td><td>Label every plan with the data date and source, and re-check once before departure</td></tr>
         <tr><td>Friends won’t open the link and fill in their info</td><td>Few trips actually get organized</td><td>No sign-up, done in under a minute</td></tr>
         <tr><td>Scope is too big to finish in four weeks</td><td>No prototype to show</td><td>Get one route working end to end first, then expand to 15–20</td></tr>
@@ -268,22 +273,41 @@
       </div>
 
       <h3>3. How It Works Under the Hood & Riskiest Assumption (Week 2+)</h3>
-      <p><strong>Riskiest Assumption:</strong> that the schedule data is accurate, including special weekend schedules. If it is wrong, the group misses the train and stops trusting the plan.</p>
-      <p><strong>Simple Architecture:</strong> organizer creates trip + friends fill in the form → local app merges constraints → schedule / weather data + AI model → plan, last-train countdown, backup; on a delay, re-plan and notify <span class="todo">[TODO Week 2: tech stack]</span></p>
+      <p><strong>Biggest risk (PRD v2):</strong> the AI misunderstands what the organizer wrote, for example “this Saturday” becomes the wrong date, “after 9” becomes 21:00, or the group size is guessed. If the inputs are wrong, every train time after that is wrong too, even though the timetable rules are correct. (v1’s riskiest assumption, wrong schedule data, is still open and stays in the risk table.)</p>
+      <p><strong>How Build 2 tests it:</strong></p>
+      <ul>
+        <li><strong>Human check built in:</strong> the AI never creates the trip. It only pre-fills the form and shows “Understood: date · leave after · people · home by”. The organizer fixes anything wrong before clicking Create.</li>
+        <li><strong>Validation layer:</strong> the server checks every value the AI returns (real date, not in the past; HH:MM times; group size 1–30; destination must be a supported route). Bad values are dropped with a visible note instead of reaching the plan. Covered by 4 automated tests with no network.</li>
+        <li><strong>PostHog evidence:</strong> <code>parsed_trip_description</code> records success or failure and which fields were found (never the raw text); <code>created_trip</code> records whether the description was used. Session replays show whether people edit the AI’s values before creating the trip, which is the signal that it misread them.</li>
+        <li><strong>Next:</strong> pod testing on Nov 17 with real phrasing from classmates, then a 10-case eval (normal, messy, adversarial) in Build 4.</li>
+      </ul>
+      <p><strong>How the app works:</strong></p>
+      <ol>
+        <li>Organizer types a sentence (e.g. “4 of us this Saturday, leave after 9am, home by 7pm”) and clicks <em>Fill from description</em>.</li>
+        <li>The local Python server (standard library only) sends it with today’s date to one LLM call through OpenRouter (<code>anthropic/claude-haiku-5.5</code>), asking for JSON only.</li>
+        <li>The server validates the JSON and returns the fields plus any notes; the page fills the form for the organizer to check.</li>
+        <li>Organizer creates the trip and shares the link; friends enter station, fitness, and budget once.</li>
+        <li>A rules-only planner works back from the last train over the timetable in <code>route.json</code>: main train, backup, latest time off the trail, and a warning if someone gets home after the home-by time. Every time shows its source.</li>
+        <li>“Simulate delay” re-runs the planner and notifies everyone. PostHog records pageviews, clicks, session replays, and four named events.</li>
+      </ol>
+      <p class="meta">API key lives in a local <code>.env</code> file that is git-ignored; setup steps are in AGENTS.md.</p>
 
       <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
       <div class="grid-2">
         <div class="stat-box">
           <div class="stat-label">Cumulative Build Spend</div>
-          <div class="stat-value">[Record actual spend]</div>
+          <div class="stat-value">$0.00</div>
+          <p class="meta">Through Build 2. OpenRouter usage so far rounds to $0 (a few test parses); no hosting or paid tools yet.</p>
         </div>
         <div class="stat-box">
           <div class="stat-label">Est. Cost Per User Run</div>
-          <div class="stat-value">[Not yet estimated]</div>
+          <div class="stat-value">&lt; $0.0001</div>
+          <p class="meta">One parse ≈ 300 input + 80 output tokens on Claude Haiku 5.5 via OpenRouter ($0.10 / $0.50 per million tokens) ≈ $0.00007. Planning itself is rules-only and free. Estimate, not yet measured.</p>
         </div>
         <div class="stat-box">
           <div class="stat-label">User Evidence (Analytics from Build 2)</div>
-          <div class="stat-value">[Not yet measured]</div>
+          <div class="stat-value">PostHog live</div>
+          <p class="meta">Pageviews, clicks, and session replay verified on the local app. Real user numbers start with pod testing on Nov 17.</p>
         </div>
         <div class="stat-box">
           <div class="stat-label">Sponsor Call (Week 6)</div>
@@ -310,9 +334,9 @@
       <div class="log-entry">
         <h3>Build 2 · Smallest Local Version & PostHog (Due Nov 16)</h3>
         <ul>
-          <li><strong>What shipped:</strong> [Local working slice, PostHog verified on this page and the local app, PRD v2, and local setup in AGENTS.md]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
+          <li><strong>What shipped:</strong> One complete user action with a real AI call: the organizer describes the trip in plain language, one OpenRouter call parses it, the server validates the result, and the form fills in for the organizer to confirm (screenshot above). Added group size and a home-by time; the plan warns if someone gets home late. PostHog installed on this page and the local app, with four named events. AGENTS.md now covers <code>.env</code> setup. 13 automated tests pass. Commits on Nov 15 and Nov 16.</li>
+          <li><strong>What broke / changed in PRD:</strong> Biggest risk moved from wrong schedule data to the AI misreading the trip description, because that is the new piece this build adds. Kept the AI out of train times on purpose: it only parses text, and rules still build the plan. Only one route (Cold Spring) is supported, so other destinations get a note instead of a plan. Pushing the first commit failed because GitHub had a README edit I didn’t have locally; rebased and pushed.</li>
+          <li><strong>Cost & time this week:</strong> $0.00 · ~4 hours (est. &lt; $0.0001 per parse)</li>
         </ul>
       </div>
 
