@@ -21,6 +21,7 @@ app/
   llm.py               One OpenRouter call: trip description -> form fields; validates the model's JSON
   planner.py           Rules-only planner: trains, backup, last train home, delay re-plan, home-by warning
   data/route.json      Sample Cold Spring timetable (NOT verified against MTA)
+  data/delay_feed.json Simulated delay feed {train_id: minutes}; server checks it every 10s and re-plans
   static/index.html    The whole local UI (vanilla HTML/JS) + PostHog snippet and custom events
 docs/
   index.html           Product Page on GitHub Pages: pitch, living PRD, build log, PostHog snippet
