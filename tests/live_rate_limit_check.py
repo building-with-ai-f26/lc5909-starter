@@ -19,7 +19,12 @@ for i in range(1, 31):
         with urllib.request.urlopen(req, timeout=60) as r:
             code, msg = r.status, "created"
     except urllib.error.HTTPError as e:
-        code, msg = e.code, json.loads(e.read() or b"{}").get("error", "")
+        raw = e.read()
+        try:
+            msg = json.loads(raw or b"{}").get("error", "")
+        except ValueError:  # not our server (wrong URL, or Render's own error page)
+            msg = f"non-JSON reply, check the URL: {raw[:80]!r}"
+        code = e.code
     counts[code] = counts.get(code, 0) + 1
     print(f"call {i:2d}: {code} {msg}")
 print(f"\nSummary: {counts}  ->  {'RATE LIMIT WORKS' if counts.get(429, 0) >= 20 else 'CHECK THIS'}")

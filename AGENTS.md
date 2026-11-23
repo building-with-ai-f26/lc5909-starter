@@ -12,7 +12,7 @@
 - **Set up secrets:** `cp .env.example .env`, then put your OpenRouter key in `.env` (never commit it). Without a key the app still works; only "Fill from description" shows an error.
 - **Run locally:** `python3 app/server.py`, then open http://localhost:8000
 - **Run deterministic tests:** `python3 -m unittest discover tests`
-- **Run the live rate-limit check:** `python3 tests/live_rate_limit_check.py https://<live-url>` (expects 10 × 201, then 20 × 429)
+- **Run the live rate-limit check:** `python3 tests/live_rate_limit_check.py https://lc5909-starter.onrender.com` (expects 10 × 201, then 20 × 429)
 - **Run model evals:** not yet. The one model call (trip description parsing) is covered by deterministic validation tests in `tests/test_llm.py`; a 10-case eval comes in Build 4.
 
 ## Project Structure

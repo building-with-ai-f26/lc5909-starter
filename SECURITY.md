@@ -40,7 +40,7 @@ Because there is no database, the proof test is **"the rate limit stops 30 calls
   - 30 AI-parse calls give **25 × 429**. In this test the LLM is replaced with a stub, so it makes no network calls and costs nothing.
   - Oversized and non-object bodies are refused with **400**.
   - An unknown trip ID returns **404**.
-- On the live site, `python3 tests/live_rate_limit_check.py https://<live-url>` prints every status and a summary line. The screenshot of the refusal is in the build submission.
+- On the live site, `python3 tests/live_rate_limit_check.py https://lc5909-starter.onrender.com` prints every status and a summary line. The screenshot of the refusal is in the build submission.
 
 ## What is left (known risks)
 - **Fakeable IP:** the per-IP limit trusts the first `X-Forwarded-For` value, which a client can fake to dodge it. The global daily AI cap still bounds spend. Next step: check how Render builds this header and use the entry its proxy adds.
