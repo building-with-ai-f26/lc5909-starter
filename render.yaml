@@ -1,0 +1,16 @@
+# Render Blueprint: one free Python web service, no database (trips live in memory).
+services:
+  - type: web
+    name: trailtrain
+    runtime: python
+    plan: free
+    buildCommand: "echo no dependencies"
+    startCommand: "python3 app/server.py"
+    healthCheckPath: /
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: OPENROUTER_API_KEY
+        sync: false   # set by hand in the Render dashboard, never in git

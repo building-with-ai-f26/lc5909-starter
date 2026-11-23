@@ -182,7 +182,7 @@
     <section id="live-demo">
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
-        <strong>Current Status:</strong> Build 2 · local app with one real AI call<br />
+        <strong>Current Status:</strong> Build 3 · live at <a href="#">[LIVE URL]</a> (Render, free tier: the first load can take about 50s)<br />
         <strong>Demo:</strong> screenshots of the local prototype below (sample timetable data, not yet verified against MTA).
       </p>
       <figure style="margin:0 0 12px;">
@@ -214,7 +214,7 @@
       <h2>Living PRD (Product Requirements Document)</h2>
       <p class="meta">Updated every week as we test with real users and learn what works.</p>
 
-      <p class="meta">PRD v2 · Nov 16, 2026 · Emily Chen (v1: Nov 10)</p>
+      <p class="meta">PRD v3 · Nov 23, 2026 · Emily Chen (v2: Nov 16 · v1: Nov 10)</p>
 
       <h3>0. The Problem</h3>
       <p>Outdoor apps assume you drive. People without a car have to piece together transit schedules, weather, sunset, and the trip home on their own. Coordinating a group is even harder, so they often just don’t go.</p>
@@ -294,6 +294,15 @@
       </ol>
       <p class="meta">API key lives in a local <code>.env</code> file that is git-ignored; setup steps are in AGENTS.md.</p>
 
+      <h3>3b. Hosting, Data &amp; Security (PRD v3)</h3>
+      <ul>
+        <li><strong>Hosting:</strong> one free Render web service (<code>render.yaml</code>), served over HTTPS. It is the same Python standard-library server as the local version, with no build step. The free tier sleeps when idle, so the first visit can take about 50s.</li>
+        <li><strong>Database: none, on purpose.</strong> A trip lasts one day and is shared by link. Trips live in memory and are lost on restart, which is fine for pod testing. Next step if real groups use it: one small Postgres table for trips.</li>
+        <li><strong>Sign-in: none, on purpose.</strong> Invited friends should be able to join from a link with no account (PRD §1). The link is the key: a 96-bit random trip ID that cannot be listed or guessed.</li>
+        <li><strong>Security:</strong> a per-IP rate limit (10 writes/min; 5 AI calls/min) plus a global cap of 200 AI calls/day so no one can burn the OpenRouter credit. Request bodies are capped at 10 KB with typed validation, and the server caps trips, people, and notifications. Security headers are on, and the API key is kept only in Render's environment settings. Proof: 30 rapid calls give 10 created and 20 refused with <code>429</code>. Full audit: <a href="https://github.com/building-with-ai-f26/lc5909-starter/blob/main/SECURITY.md">SECURITY.md</a>.</li>
+        <li><strong>Analytics:</strong> the same PostHog project and session replay run on the live site.</li>
+      </ul>
+
       <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
       <div class="grid-2">
         <div class="stat-box">
@@ -345,9 +354,9 @@
       <div class="log-entry">
         <h3>Build 3 · Build.exe: The Core Workflow (Due Nov 23)</h3>
         <ul>
-          <li><strong>What shipped:</strong> [End-to-end workflow working with real inputs + PostHog funnel events]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
+          <li><strong>What shipped:</strong> The app is live on Render (Beginner lane) and usable from a phone. The agent now watches a delay feed and re-plans on its own (PR #1). I did a full security audit (<a href="https://github.com/building-with-ai-f26/lc5909-starter/blob/main/SECURITY.md">SECURITY.md</a>): added rate limits, a daily AI cost cap, body and type validation, memory caps, longer trip IDs, and security headers. 19 automated tests pass, including the 30-call rate-limit test. AGENTS.md now has Shipping and Ask me first sections, plus two rules that came from real agent mistakes.</li>
+          <li><strong>What broke / changed in PRD:</strong> PRD v3 adds hosting, data, and security choices, with no database and no sign-in on purpose. The server was bound to 127.0.0.1:8000 and could not run on a host until it read HOST and PORT. The first security test quietly made real OpenRouter calls; I caught it because the test run was slow, and now the LLM is stubbed. During a manual check the agent left a local server running.</li>
+          <li><strong>Cost & time this week:</strong> $0.00 (Render free tier; OpenRouter use rounds to $0) · <span class="todo">[TODO] hours</span></li>
         </ul>
       </div>
 
