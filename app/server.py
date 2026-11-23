@@ -7,6 +7,7 @@ Trips live in memory and are lost when the server stops.
 import json
 import secrets
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -18,6 +19,8 @@ HERE = Path(__file__).parent
 ROUTE = json.loads((HERE / "data" / "route.json").read_text())
 INDEX = (HERE / "static" / "index.html").read_bytes()
 PORT = 8000
+FEED_PATH = HERE / "data" / "delay_feed.json"  # simulated delay feed: {"train_id": minutes}
+FEED_CHECK_SEC = 10
 llm.load_env()
 
 TRIPS = {}
@@ -31,6 +34,47 @@ def replan(trip):
     if msg:
         trip["notifications"].append(msg)
     trip["plan"] = new
+
+
+def check_feed(trip, feed):
+    """Agent step: apply new delays from the feed, then re-plan on its own.
+
+    trip["feed_seen"] remembers what was already handled, so the same
+    delay never triggers a second alert. Returns True if anything changed.
+    """
+    plan = trip["plan"]
+    if not plan or not plan.get("ok"):
+        return False
+    seen = trip.setdefault("feed_seen", {})
+    changed = False
+    for train, minutes in feed.items():
+        delta = int(minutes) - seen.get(train, 0)
+        if delta == 0:
+            continue
+        seen[train] = int(minutes)
+        trip["delays"][train] = trip["delays"].get(train, 0) + delta
+        trip["notifications"].append(f"Detected: {train} delayed {int(minutes)} min (delay feed).")
+        changed = True
+    if changed:
+        replan(trip)
+    return changed
+
+
+def read_feed():
+    try:
+        return json.loads(FEED_PATH.read_text())
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def monitor_loop():
+    """Background watcher: every FEED_CHECK_SEC, check every trip against the feed."""
+    while True:
+        feed = read_feed()
+        with LOCK:
+            for trip in TRIPS.values():
+                check_feed(trip, feed)
+        time.sleep(FEED_CHECK_SEC)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -149,5 +193,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    threading.Thread(target=monitor_loop, daemon=True).start()
     print(f"TrailTrain running at http://localhost:{PORT}")
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

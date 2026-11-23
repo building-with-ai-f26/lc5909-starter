@@ -12,6 +12,7 @@ APP = Path(__file__).resolve().parent.parent / "app"
 sys.path.insert(0, str(APP))
 
 import planner  # noqa: E402
+import server  # noqa: E402
 
 ROUTE = json.loads((APP / "data" / "route.json").read_text())
 
@@ -75,6 +76,30 @@ class PlannerTest(unittest.TestCase):
         self.assertEqual(len(late), 1)  # Emily 17:15 is late, Sam 17:04 is fine
         self.assertIn("Emily", late[0])
 
+
+
+class DelayFeedMonitorTest(unittest.TestCase):
+    def _trip(self):
+        trip = {"friends": FRIENDS, "earliest_departure": "08:30", "delays": {},
+                "home_by": None, "notifications": []}
+        trip["plan"] = planner.make_plan(ROUTE, FRIENDS, "08:30")
+        return trip
+
+    def test_feed_delay_triggers_replan_and_alert(self):
+        trip = self._trip()
+        old_train = trip["plan"]["main"]["train"]
+        self.assertTrue(server.check_feed(trip, {old_train: 70}))
+        self.assertNotEqual(trip["plan"]["main"]["train"], old_train)
+        self.assertTrue(any("Detected" in n for n in trip["notifications"]))
+        self.assertTrue(any("Re-planned" in n for n in trip["notifications"]))
+
+    def test_same_feed_delay_alerts_once(self):
+        trip = self._trip()
+        feed = {trip["plan"]["main"]["train"]: 70}
+        server.check_feed(trip, feed)
+        count = len(trip["notifications"])
+        self.assertFalse(server.check_feed(trip, feed))
+        self.assertEqual(len(trip["notifications"]), count)
 
 if __name__ == "__main__":
     unittest.main()
